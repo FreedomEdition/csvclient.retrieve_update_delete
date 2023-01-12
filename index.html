@@ -1,0 +1,283 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=no"">
+        <meta charset="utf-8">
+        <meta name="keywords" content="">
+        <meta name="description" content="">
+
+
+        <style>
+            /* Styling edit text for juice fields */
+            .editText{height:7px; font-size:12pt; width:175px; border: 2px solid black; border-radius:10px; padding:18px; text-align:center}
+
+            /* Styling select and upload image buttons */
+            .small-button{
+                background-color: rgb(118, 174, 238);
+                color: white;
+                border-radius:5px;
+                border:none;
+                width:200px;
+                height:40px
+            }
+
+            #id_searchid:focus{
+                outline: none;
+                border-color:transparent;
+
+            }
+
+            #uploadimg, #deleteimg{
+                width:40px;
+                height:40px;
+                margin-top:50px;
+            }
+        </style>
+
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+        <script type="text/javascript" src="https://code.jquery.com/jquery-latest.min.js"></script>
+
+        <!---------------------------------------FIREBASE LIBRARIES---------------------------------------------------->
+        <script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-database.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-storage.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.19.1/firebase-auth.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!---------------------------------------TOAST LIBRARIES------------------------------------------------------->
+        <link rel="stylesheet" href="https://unpkg.com/native-toast@2.0.0/dist/native-toast.css">
+        <script src="https://unpkg.com/native-toast@2.0.0/dist/native-toast.min.js"></script>
+
+
+    </head>
+
+    
+    <body  style="padding:10px">
+
+
+        <input style="border-color:transparent; width:75%; text-align:left" id="id_searchid" class="editText" maxlength="10" type="text" placeholder="Search..." />
+        <img id="retrieve" style="width:20px; height:20px; margin-left:10px;" src="search.png"/>
+        <br><hr style="width:100%"></hr></br>
+
+        <div style="padding-left: 10px;">
+            <br><span style="display:none" id="name">Name: </span><input style="display:none" id="searchname"></br>
+            <br><span style="display:none" id="address">Address: </span><input style="display:none" id="searchaddress"></br>
+            <br><span style="display:none" id="age">Age: </span><input style="display:none" id="searchage"></br>
+        </div>
+
+
+        <center>
+            <div style="width:50%; text-align:center">
+                <img style="display:none; float:left" id="uploadimg" src="upload.png"/>
+                <img onclick="deleterecord()" style="display:none; float:right" id="deleteimg" src="delete.png"/>
+            </div>
+        </center>
+        
+
+        
+
+
+        
+        <script>
+
+
+            // #CONFIGURING WEB APP...
+            var firebaseConfig = {
+                apiKey: "AIzaSyBuHWdB2mscnaSSuTCnhw8K9lULc5QB7Tc",
+                authDomain: "csv-client-project.firebaseapp.com",
+                databaseURL: "https://csv-client-project-default-rtdb.firebaseio.com",
+                projectId: "csv-client-project",
+                storageBucket: "csv-client-project.appspot.com",
+                messagingSenderId: "887913170343",
+                appId: "1:887913170343:web:c54a8af3cfe514a9512282",
+                measurementId: "G-RFL71D4J5W"
+            };
+    
+    
+            // Initialize Firebase...
+            firebase.initializeApp(firebaseConfig);
+
+
+            var search;
+            var id_number;
+            let exist = false;
+            var getname;
+            var getaddress;
+            var getage;
+            
+
+            document.querySelector('#retrieve').addEventListener('click', ()=>{
+
+
+                search = document.getElementById('id_searchid').value;
+
+                
+                firebase.database().ref('USERs/' + search + "/UserId" ).on('value',(snap)=>{
+
+                    search = snap.val();
+
+                    if(search === null){
+
+                        nativeToast({
+                            message: "No record with this ID exist. Please try another one!",
+                            position: 'center',    
+                            rounded: true,
+                            timeout: 5000,
+                            type: 'error',
+                            icon: false,
+                            edge:true,
+                            closeOnClick: false,
+                            elements: [createElement()]
+                        });
+                        
+                    }else{
+
+                        document.getElementById('name').style.display = 'block';
+                        document.getElementById('age').style.display = 'block';
+                        document.getElementById('address').style.display = 'block';
+
+                        document.getElementById('searchname').style.display = 'block';
+                        document.getElementById('searchage').style.display = 'block';
+                        document.getElementById('searchaddress').style.display = 'block';
+
+                        document.getElementById('uploadimg').style.display = 'block';
+                        document.getElementById('deleteimg').style.display = 'block';
+
+                        firebase.database().ref('USERs/' + search + "/Name" ).on('value',(snap)=>{
+                            getname = snap.val();
+                            document.getElementById('searchname').value = getname;
+                        });
+
+                        firebase.database().ref('USERs/' + search + "/Age" ).on('value',(snap)=>{
+                            getage = snap.val();
+                            document.getElementById('searchage').value = getage;
+                        });
+
+                        firebase.database().ref('USERs/' + search + "/Address" ).on('value',(snap)=>{
+                            getaddress = snap.val();
+                            document.getElementById('searchaddress').value = getaddress;
+                        });
+
+                    }
+                    
+                }); 
+
+                
+            });
+
+
+            document.querySelector('#uploadimg').addEventListener('click', ()=>{
+
+
+                if(document.getElementById('searchname').value === "" || document.getElementById('searchage').value==="" || document.getElementById('searchaddress').value ===""  ){
+                    nativeToast({
+                        message: "No field should be left empty!",
+                        position: 'center',    
+                        rounded: true,
+                        timeout: 5000,
+                        type: 'error',
+                        icon: false,
+                        edge:true,
+                        closeOnClick: false,
+                        elements: [createElement()]
+                    });
+
+                }else{
+                
+                    search = document.getElementById('id_searchid').value;
+
+                    firebaseRef = firebase.database().ref("USERs/" + search); 
+
+                    firebaseRef.set({
+                        UserId: search,
+                        Name: document.getElementById('searchname').value,
+                        Age: document.getElementById('searchage').value,
+                        Address: document.getElementById('searchaddress').value
+                    });
+
+                    document.getElementById('searchname').value = "";
+                    document.getElementById('searchage').value = "";
+                    document.getElementById('searchaddress').value = "";
+
+                    nativeToast({
+                        message: "Data has been updated!",
+                        position: 'center',    
+                        rounded: true,
+                        timeout: 5000,
+                        type: '',
+                        icon: false,
+                        edge:true,
+                        closeOnClick: false,
+                        elements: [createElement()]
+                    });
+
+                    document.getElementById('name').style.display = 'none';
+                    document.getElementById('age').style.display = 'none';
+                    document.getElementById('address').style.display = 'none';
+
+                    document.getElementById('searchname').style.display = 'none';
+                    document.getElementById('searchage').style.display = 'none';
+                    document.getElementById('searchaddress').style.display = 'none';
+
+                    document.getElementById('uploadimg').style.display = 'none';
+                    document.getElementById('deleteimg').style.display = 'none';
+                }
+                
+
+            });
+
+
+            
+
+            function deleterecord(){
+                search = document.getElementById('id_searchid').value;
+
+                let removeNode = firebase.database().ref("/USERs/" + search);
+                removeNode.remove();
+
+                document.getElementById('name').style.display = 'none';
+                document.getElementById('age').style.display = 'none';
+                document.getElementById('address').style.display = 'none';
+
+                document.getElementById('searchname').style.display = 'none';
+                document.getElementById('searchage').style.display = 'none';
+                document.getElementById('searchaddress').style.display = 'none';
+
+                document.getElementById('uploadimg').style.display = 'none';
+                document.getElementById('deleteimg').style.display = 'none';
+
+
+
+
+                nativeToast({
+                        message: "Record has been deleted!",
+                        position: 'center',    
+                        rounded: true,
+                        timeout: 5000,
+                        type: '',
+                        icon: false,
+                        edge:true,
+                        closeOnClick: false,
+                        elements: [createElement()]
+                    });
+            }
+
+
+
+            //Used in creation of Toast...
+            function createElement(){
+                let el = document.createElement('div');
+                let child = document.createElement('p');
+                el.appendChild(child);
+                return el;
+            } 
+
+    
+        </script>
+    
+    
+    
+    
+    </body>
+</html>
